@@ -1,0 +1,36 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
+  "files": {
+    "includes": ["apps/api/src/**/*.ts", "apps/api/drizzle.config.ts"],
+    "ignoreUnknown": false
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noDefaultExport": "off",
+        "useExportType": "off",
+        "useImportType": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "quoteStyle": "single",
+      "arrowParentheses": "always"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "fastify": "^5.8.5",
+    "@fastify/autoload": "^6.3.1",
+    "@fastify/type-provider-typebox": "^6.1.0",
+    "@sinclair/typebox": "^0.34.49",
+    "drizzle-orm": "^0.45.2",
+    "@libsql/client": "^0.15.0",
+    "better-auth": "^1.6.11",
+    "@better-auth/drizzle-adapter": "^1.6.11",
+    "@fastify/swagger": "^9.7.0",
+    "@scalar/fastify-api-reference": "^1.57.5",
+    "fastify-plugin": "^5.1.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3",
+    "@types/node": "^22.0.0"
+  }
+}
