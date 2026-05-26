@@ -1,5 +1,5 @@
-import { type Static, Type } from '@sinclair/typebox';
-import { Value } from '@sinclair/typebox/value';
+import Type, { type Static } from 'typebox';
+import { Value } from 'typebox/value';
 
 const envSchema = Type.Object({
   DATABASE_URL: Type.String({ default: 'file:./data.db' }),
@@ -25,11 +25,11 @@ export function loadEnv(): Env {
   };
 
   if (!Value.Check(envSchema, parsed)) {
-    console.error('Invalid environment variables:');
+    const errors: string[] = [];
     for (const err of Value.Errors(envSchema, parsed)) {
-      console.error(`  ${err.path}: ${err.message} (received ${JSON.stringify(err.value)})`);
+      errors.push(`${err.instancePath}: ${err.message}`);
     }
-    process.exit(1);
+    throw new Error(`Invalid environment variables:\n  ${errors.join('\n  ')}`);
   }
 
   env = parsed as Env;
@@ -37,6 +37,6 @@ export function loadEnv(): Env {
 }
 
 export function getEnv(): Env {
-  if (!env) throw new Error('Env not loaded. Call loadEnv() first.');
+  if (!env) return loadEnv();
   return env;
 }

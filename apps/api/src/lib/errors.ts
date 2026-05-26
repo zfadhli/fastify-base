@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { FastifyInstance } from 'fastify';
+import Type from 'typebox';
 
 export class AppError extends Error {
   constructor(
@@ -19,7 +19,7 @@ export const ErrorResponseSchema = Type.Object({
 });
 
 export function setupErrorHandler(app: FastifyInstance) {
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error, request, reply) => {
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({
         error: error.code,
@@ -38,6 +38,7 @@ export function setupErrorHandler(app: FastifyInstance) {
       });
     }
 
+    request.log.error(error, 'Unhandled error');
     const statusCode = typeof err.statusCode === 'number' ? err.statusCode : 500;
     reply.status(statusCode).send({
       error: 'INTERNAL_ERROR',

@@ -17,6 +17,7 @@
       "recommended": true,
       "style": {
         "noDefaultExport": "off",
+        "noNonNullAssertion": "off",
         "useExportType": "off",
         "useImportType": "off"
       },

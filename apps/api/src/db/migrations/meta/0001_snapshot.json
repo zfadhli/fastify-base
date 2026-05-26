@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "9cd6b350-3b68-46e6-b72a-83a4460fe3d9",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "8385d411-560a-4305-b13f-aad7b96205d8",
+  "prevId": "9cd6b350-3b68-46e6-b72a-83a4460fe3d9",
   "tables": {
     "account": {
       "name": "account",
@@ -324,6 +324,85 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "comment": {
+      "name": "comment",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "postId": {
+          "name": "postId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "authorId": {
+          "name": "authorId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "comment_postId_post_id_fk": {
+          "name": "comment_postId_post_id_fk",
+          "tableFrom": "comment",
+          "tableTo": "post",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "comment_authorId_user_id_fk": {
+          "name": "comment_authorId_user_id_fk",
+          "tableFrom": "comment",
+          "tableTo": "user",
+          "columnsFrom": [
+            "authorId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

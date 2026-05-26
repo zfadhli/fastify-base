@@ -54,10 +54,10 @@ CREATE TABLE `post` (
 	`slug` text NOT NULL,
 	`content` text NOT NULL,
 	`published` integer DEFAULT false NOT NULL,
-	`author_id` text NOT NULL,
-	`created_at` text NOT NULL,
-	`updated_at` text NOT NULL,
-	FOREIGN KEY (`author_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+	`authorId` text NOT NULL,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
+	FOREIGN KEY (`authorId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `post_slug_unique` ON `post` (`slug`);

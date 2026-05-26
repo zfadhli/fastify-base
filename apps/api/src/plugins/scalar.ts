@@ -7,7 +7,8 @@ export default fp(async (fastify) => {
     openapi: {
       info: {
         title: 'Fastify Base API',
-        description: 'Production-ready Fastify template with blog API example.',
+        description:
+          'Production-ready Fastify template with blog API example.\n\nAuth endpoints (`/api/auth/*`) are proxied to better-auth and not individually documented here. Use `/api/auth/sign-up/email` and `/api/auth/sign-in/email` for authentication, then pass the returned `token` as a Bearer token in the `Authorization` header.',
         version: '1.0.0',
       },
       components: {
@@ -15,11 +16,15 @@ export default fp(async (fastify) => {
           bearerAuth: {
             type: 'http',
             scheme: 'bearer',
-            bearerFormat: 'JWT',
+            bearerFormat: 'Bearer',
           },
         },
       },
     },
+  });
+
+  fastify.get('/openapi.json', { schema: { hide: true } }, async () => {
+    return fastify.swagger();
   });
 
   await fastify.register(scalar, {

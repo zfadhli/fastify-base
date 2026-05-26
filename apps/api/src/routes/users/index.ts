@@ -1,37 +1,26 @@
-import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { Type } from '@sinclair/typebox';
 import { and, desc, eq } from 'drizzle-orm';
-import type { FastifyInstance } from 'fastify';
-import { getDb } from '../../db/index.js';
-import { user } from '../../db/schema/auth.js';
-import { post } from '../../db/schema/posts.js';
-import { AppError } from '../../lib/errors.js';
+import Type from 'typebox';
+import { user } from '@/db/schema/auth.js';
+import { post } from '@/db/schema/posts.js';
+import { AppError, defineRoute, E } from '@/lib/define-route.js';
+import { UserParams, UserPostsItem, UserResponse } from './schemas.js';
 
-const UserParams = Type.Object({ id: Type.String() });
-
-const UserResponse = Type.Object({
-  id: Type.String(),
-  email: Type.String(),
-  name: Type.String(),
-  image: Type.Union([Type.String(), Type.Null()]),
-  createdAt: Type.String(),
-});
-
-export default async function (fastify: FastifyInstance) {
-  const f = fastify.withTypeProvider<TypeBoxTypeProvider>();
-
+export default defineRoute(({ f, db, fastify }) => {
   f.get(
     '/:id',
     {
       schema: {
+        tags: ['Users'],
+        summary: 'Get user profile',
+        description: 'Returns public profile information for a user by ID.',
         params: UserParams,
         response: {
           200: UserResponse,
+          404: E._404,
         },
       },
     },
     async (request, _reply) => {
-      const db = getDb();
       const { id } = request.params;
 
       const [found] = await db
@@ -40,9 +29,7 @@ export default async function (fastify: FastifyInstance) {
         .where(eq(user.id, id))
         .limit(1);
 
-      if (!found) {
-        throw new AppError(404, 'NOT_FOUND', 'User not found');
-      }
+      if (!found) throw new AppError(404, 'NOT_FOUND', 'User not found');
 
       return found;
     },
@@ -52,26 +39,21 @@ export default async function (fastify: FastifyInstance) {
     '/:id/posts',
     {
       schema: {
+        tags: ['Users'],
+        summary: 'List user posts',
+        description:
+          'Returns published posts by a user. If authenticated as the owner or admin, also returns unpublished posts.',
         params: UserParams,
         response: {
-          200: Type.Array(
-            Type.Object({
-              id: Type.String(),
-              title: Type.String(),
-              slug: Type.String(),
-              published: Type.Boolean(),
-              createdAt: Type.String(),
-            }),
-          ),
+          200: Type.Array(UserPostsItem),
         },
       },
     },
     async (request, _reply) => {
-      const db = getDb();
       const { id } = request.params;
       const session = await fastify.getSession(request.headers);
-      const isOwner = session?.user && String(session.user.id) === id;
-      const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
+      const isOwner = session?.user?.id === id;
+      const isAdmin = session?.user?.role === 'admin';
 
       const where = isOwner || isAdmin ? eq(post.authorId, id) : and(eq(post.authorId, id), eq(post.published, true));
 
@@ -88,4 +70,4 @@ export default async function (fastify: FastifyInstance) {
         .orderBy(desc(post.createdAt));
     },
   );
-}
+});
