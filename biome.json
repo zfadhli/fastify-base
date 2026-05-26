@@ -21,6 +21,12 @@
         "useExportType": "off",
         "useImportType": "off"
       },
+      "suspicious": {
+        "noExplicitAny": "off"
+      },
+      "complexity": {
+        "noStaticOnlyClass": "off"
+      },
       "correctness": {
         "noUnusedVariables": "off"
       }

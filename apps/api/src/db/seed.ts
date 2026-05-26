@@ -1,8 +1,8 @@
 import { ulid } from 'ulid';
-import { getDb } from '@/db/index.js';
-import * as authSchema from './schema/auth.js';
-import { comment } from './schema/comments.js';
-import { post } from './schema/posts.js';
+import { getDb } from '@/db';
+import * as authSchema from './schema/auth';
+import { comment } from './schema/comments';
+import { post } from './schema/posts';
 
 async function seed() {
   const db = getDb();

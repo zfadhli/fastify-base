@@ -3,9 +3,9 @@ import { betterAuth } from 'better-auth';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
-import { getDb } from '@/db/index.js';
-import * as authSchema from '@/db/schema/auth.js';
-import { getEnv } from '@/lib/env.js';
+import { getDb } from '@/db';
+import * as authSchema from '@/db/schema';
+import { getEnv } from '@/lib/env';
 
 export interface SessionUser {
   id: string;

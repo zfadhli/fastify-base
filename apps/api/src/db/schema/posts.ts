@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { ulid } from 'ulid';
-import { user } from './auth.js';
+import { user } from './auth';
 
 export const post = sqliteTable('post', {
   id: text('id')

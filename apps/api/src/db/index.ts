@@ -1,9 +1,9 @@
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
-import { getEnv } from '@/lib/env.js';
-import * as authSchema from './schema/auth.js';
-import * as commentsSchema from './schema/comments.js';
-import * as postsSchema from './schema/posts.js';
+import { getEnv } from '@/lib/env';
+import * as authSchema from './schema/auth';
+import * as commentsSchema from './schema/comments';
+import * as postsSchema from './schema/posts';
 
 let _db: ReturnType<typeof drizzle>;
 

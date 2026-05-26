@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { FastifyInstance } from 'fastify';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = import.meta.dir;
 
 async function loadRouteDir(fastify: FastifyInstance, dir: string, routesRoot: string) {
   try {

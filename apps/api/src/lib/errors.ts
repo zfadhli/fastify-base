@@ -1,16 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import Type from 'typebox';
 
-export class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    public code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'AppError';
-  }
-}
+const ERROR_NAMES: Record<number, string> = {
+  400: 'BAD_REQUEST',
+  401: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
+  404: 'NOT_FOUND',
+  409: 'CONFLICT',
+  422: 'UNPROCESSABLE_ENTITY',
+  429: 'TOO_MANY_REQUESTS',
+};
 
 export const ErrorResponseSchema = Type.Object({
   error: Type.String(),
@@ -20,14 +19,6 @@ export const ErrorResponseSchema = Type.Object({
 
 export function setupErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((error, request, reply) => {
-    if (error instanceof AppError) {
-      return reply.status(error.statusCode).send({
-        error: error.code,
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
-
     const err = error as Record<string, unknown>;
 
     if (err.validation) {
@@ -41,7 +32,7 @@ export function setupErrorHandler(app: FastifyInstance) {
     request.log.error(error, 'Unhandled error');
     const statusCode = typeof err.statusCode === 'number' ? err.statusCode : 500;
     reply.status(statusCode).send({
-      error: 'INTERNAL_ERROR',
+      error: ERROR_NAMES[statusCode] ?? 'INTERNAL_ERROR',
       message: statusCode === 500 ? 'Internal server error' : String(err.message ?? 'Unknown error'),
       statusCode,
     });

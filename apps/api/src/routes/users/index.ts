@@ -1,26 +1,22 @@
 import { and, desc, eq } from 'drizzle-orm';
 import Type from 'typebox';
-import { user } from '@/db/schema/auth.js';
-import { post } from '@/db/schema/posts.js';
-import { AppError, defineRoute, E } from '@/lib/define-route.js';
-import { UserParams, UserPostsItem, UserResponse } from './schemas.js';
+import { post, user } from '@/db/schema';
+import { Controller, E } from '@/lib/controller';
+import { UserParams, UserPostsItem, UserResponse } from './schemas';
 
-export default defineRoute(({ f, db, fastify }) => {
-  f.get(
-    '/:id',
-    {
-      schema: {
-        tags: ['Users'],
-        summary: 'Get user profile',
-        description: 'Returns public profile information for a user by ID.',
-        params: UserParams,
-        response: {
-          200: UserResponse,
-          404: E._404,
-        },
+export default Controller.route(({ app, db }) => {
+  app.get('/:id', {
+    schema: {
+      tags: ['Users'],
+      summary: 'Get user profile',
+      description: 'Returns public profile information for a user by ID.',
+      params: UserParams,
+      response: {
+        200: UserResponse,
+        404: E._404,
       },
     },
-    async (request, _reply) => {
+    handler: async (request, reply) => {
       const { id } = request.params;
 
       const [found] = await db
@@ -29,29 +25,26 @@ export default defineRoute(({ f, db, fastify }) => {
         .where(eq(user.id, id))
         .limit(1);
 
-      if (!found) throw new AppError(404, 'NOT_FOUND', 'User not found');
+      if (!found) return reply.notFound('User not found');
 
       return found;
     },
-  );
+  });
 
-  f.get(
-    '/:id/posts',
-    {
-      schema: {
-        tags: ['Users'],
-        summary: 'List user posts',
-        description:
-          'Returns published posts by a user. If authenticated as the owner or admin, also returns unpublished posts.',
-        params: UserParams,
-        response: {
-          200: Type.Array(UserPostsItem),
-        },
+  app.get('/:id/posts', {
+    schema: {
+      tags: ['Users'],
+      summary: 'List user posts',
+      description:
+        'Returns published posts by a user. If authenticated as the owner or admin, also returns unpublished posts.',
+      params: UserParams,
+      response: {
+        200: Type.Array(UserPostsItem),
       },
     },
-    async (request, _reply) => {
+    handler: async (request) => {
       const { id } = request.params;
-      const session = await fastify.getSession(request.headers);
+      const session = await app.getSession(request.headers);
       const isOwner = session?.user?.id === id;
       const isAdmin = session?.user?.role === 'admin';
 
@@ -69,5 +62,5 @@ export default defineRoute(({ f, db, fastify }) => {
         .where(where)
         .orderBy(desc(post.createdAt));
     },
-  );
+  });
 });

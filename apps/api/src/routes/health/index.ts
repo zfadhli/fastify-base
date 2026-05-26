@@ -1,24 +1,21 @@
 import Type from 'typebox';
-import { defineRoute } from '@/lib/define-route.js';
+import { Controller } from '@/lib/controller';
 
-export default defineRoute(({ f }) => {
-  f.get(
-    '/',
-    {
-      schema: {
-        tags: ['Health'],
-        summary: 'Health check',
-        description: 'Returns the current server status and timestamp.',
-        response: {
-          200: Type.Object({
-            status: Type.String(),
-            timestamp: Type.String(),
-          }),
-        },
+export default Controller.route(({ app }) => {
+  app.get('/', {
+    schema: {
+      tags: ['Health'],
+      summary: 'Health check',
+      description: 'Returns the current server status and timestamp.',
+      response: {
+        200: Type.Object({
+          status: Type.String(),
+          timestamp: Type.String(),
+        }),
       },
     },
-    async () => {
+    handler: async () => {
       return { status: 'ok', timestamp: new Date().toISOString() };
     },
-  );
+  });
 });

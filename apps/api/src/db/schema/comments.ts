@@ -1,7 +1,7 @@
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { ulid } from 'ulid';
-import { user } from './auth.js';
-import { post } from './posts.js';
+import { user } from './auth';
+import { post } from './posts';
 
 export const comment = sqliteTable('comment', {
   id: text('id')
