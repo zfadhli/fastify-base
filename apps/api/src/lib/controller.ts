@@ -178,6 +178,14 @@ export class Controller {
       const idParam = config.idParam ?? 'id';
       const tags = [`${config.resource}s`];
 
+      const h = {
+        index: handlers.index ? (req: any, rep: any) => handlers.index!(req, rep, ctx) : undefined,
+        show: handlers.show ? (req: any, rep: any) => handlers.show!(req, rep, ctx) : undefined,
+        store: handlers.store ? (req: any, rep: any) => handlers.store!(req, rep, ctx) : undefined,
+        update: handlers.update ? (req: any, rep: any) => handlers.update!(req, rep, ctx) : undefined,
+        destroy: handlers.destroy ? (req: any, rep: any) => handlers.destroy!(req, rep, ctx) : undefined,
+      };
+
       const indexOpts: any = {
         schema: {
           tags,
@@ -185,7 +193,7 @@ export class Controller {
           ...(schema.listParams && { params: schema.listParams }),
           response: { 200: Type.Array(schema.listItem ?? schema.response) },
         },
-        handler: handlers.index ?? defaultIndex(ctx),
+        handler: h.index ?? defaultIndex(ctx),
       };
       if (config.filters || config.sortable) {
         indexOpts.schema.querystring = generateQuerySchema({ filters: config.filters, sortable: config.sortable });
@@ -199,7 +207,7 @@ export class Controller {
           params: schema.params,
           response: { 200: schema.response, 404: E._404 },
         },
-        handler: handlers.show ?? defaultShow(ctx),
+        handler: h.show ?? defaultShow(ctx),
       });
 
       const storeOpts: any = {
@@ -211,7 +219,7 @@ export class Controller {
           body: schema.body,
           response: { 201: schema.response, 401: E._401 },
         },
-        handler: handlers.store ?? defaultStore(ctx),
+        handler: h.store ?? defaultStore(ctx),
       };
       if (auth.includes('store')) storeOpts.preHandler = [fastify.requireAuth];
       app.post('/', storeOpts);
@@ -225,7 +233,7 @@ export class Controller {
           body: schema.updateBody ?? (schema.body ? Type.Partial(schema.body) : undefined),
           response: { 200: schema.response, 401: E._401, 403: E._403, 404: E._404 },
         },
-        handler: handlers.update ?? defaultUpdate(ctx),
+        handler: h.update ?? defaultUpdate(ctx),
       };
       if (auth.includes('update')) updateOpts.preHandler = [fastify.requireAuth];
       app.put(`/:${idParam}`, updateOpts);
@@ -238,7 +246,7 @@ export class Controller {
           params: schema.params,
           response: { 200: Type.Object({ ok: Type.Boolean() }), 401: E._401, 403: E._403, 404: E._404 },
         },
-        handler: handlers.destroy ?? defaultDestroy(ctx),
+        handler: h.destroy ?? defaultDestroy(ctx),
       };
       if (auth.includes('destroy')) destroyOpts.preHandler = [fastify.requireAuth];
       app.delete(`/:${idParam}`, destroyOpts);
