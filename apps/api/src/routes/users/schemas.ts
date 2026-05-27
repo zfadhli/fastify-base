@@ -9,11 +9,3 @@ export const UserResponse = Type.Object({
   image: Type.Union([Type.String(), Type.Null()]),
   createdAt: Type.String(),
 });
-
-export const UserPostsItem = Type.Object({
-  id: Type.String(),
-  title: Type.String(),
-  slug: Type.String(),
-  published: Type.Boolean(),
-  createdAt: Type.String(),
-});
