@@ -1,5 +1,4 @@
 import { and, asc, desc, eq, gt, gte, like, lt, lte, ne } from 'drizzle-orm';
-import Type from 'typebox';
 
 export interface FilterField {
   field: string;
@@ -7,9 +6,22 @@ export interface FilterField {
   operators?: ('eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'ne' | 'like')[];
 }
 
+export interface JoinConfig {
+  alias: string;
+  table: any;
+  on: any;
+}
+
 export interface QueryConfig {
   filters?: FilterField[];
   sortable?: string[];
+  joins?: JoinConfig[];
+}
+
+export interface BuildQueryResult {
+  where: any;
+  orderBy: any[] | undefined;
+  joins: { table: any; on: any }[];
 }
 
 const OP_MAP: Record<string, (col: any, val: any) => any> = {
@@ -35,13 +47,11 @@ function coerce(value: string, type: 'string' | 'boolean' | 'number') {
   return value;
 }
 
-export function buildQuery(
-  query: Record<string, string>,
-  config: QueryConfig,
-  table: any,
-): { where: any; orderBy: any[] | undefined } {
+export function buildQuery(query: Record<string, string>, config: QueryConfig, table: any): BuildQueryResult {
   const conditions: any[] = [];
   const filterMap = new Map(config.filters?.map((f) => [f.field, f]) ?? []);
+  const joinMap = new Map(config.joins?.map((j) => [j.alias, j]) ?? []);
+  const usedJoins = new Set<string>();
 
   for (const [key, raw] of Object.entries(query)) {
     if (key === 'sort') continue;
@@ -49,8 +59,21 @@ export function buildQuery(
     const filter = filterMap.get(key);
     if (!filter) continue;
 
-    const col = table[filter.field];
-    if (!col) continue;
+    let col: any;
+
+    const dotIdx = filter.field.indexOf('.');
+    if (dotIdx > 0) {
+      const alias = filter.field.slice(0, dotIdx);
+      const colName = filter.field.slice(dotIdx + 1);
+      const join = joinMap.get(alias);
+      if (!join) continue;
+      col = join.table[colName];
+      if (!col) continue;
+      usedJoins.add(alias);
+    } else {
+      col = table[filter.field];
+      if (!col) continue;
+    }
 
     const allowed = filter.operators ?? ['eq'];
     let op = 'eq';
@@ -90,26 +113,9 @@ export function buildQuery(
   return {
     where: conditions.length > 0 ? and(...conditions) : undefined,
     orderBy: orderBy && orderBy.length > 0 ? orderBy : undefined,
+    joins: Array.from(usedJoins).map((alias) => {
+      const j = joinMap.get(alias)!;
+      return { table: j.table, on: j.on };
+    }),
   };
-}
-
-export function generateQuerySchema(config: QueryConfig) {
-  const props: Record<string, any> = {};
-
-  if (config.filters) {
-    for (const f of config.filters) {
-      const ops = f.operators ?? ['eq'];
-      const extra =
-        ops.length > 1 ? ` Prefix with ${ops.filter((o) => o !== 'eq').join(', ')}: for advanced matching.` : '';
-      props[f.field] = Type.Optional(Type.String({ description: `Filter by ${f.field} (${f.type}).${extra}` }));
-    }
-  }
-
-  if (config.sortable?.length) {
-    props.sort = Type.Optional(
-      Type.String({ description: `Sort by: ${config.sortable.join(', ')}. Prefix with - for descending order.` }),
-    );
-  }
-
-  return Type.Object(props);
 }
