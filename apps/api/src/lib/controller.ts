@@ -182,7 +182,7 @@ export class Controller {
         schema: {
           tags,
           summary: `List ${config.resource}s`,
-          params: schema.listParams,
+          ...(schema.listParams && { params: schema.listParams }),
           response: { 200: Type.Array(schema.listItem ?? schema.response) },
         },
         handler: handlers.index ?? defaultIndex(ctx),
@@ -207,7 +207,7 @@ export class Controller {
           tags,
           summary: `Create ${config.resource}`,
           security: S.bearer,
-          params: schema.listParams,
+          ...(schema.listParams && { params: schema.listParams }),
           body: schema.body,
           response: { 201: schema.response, 401: E._401 },
         },
