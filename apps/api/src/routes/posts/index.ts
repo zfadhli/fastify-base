@@ -1,4 +1,4 @@
-import { desc, eq, or } from 'drizzle-orm';
+import { and, desc, eq, or, sql } from 'drizzle-orm';
 import { post } from '@/db/schema';
 import { getUser, resource } from '@/lib/controller';
 import { slugify } from './helpers';
@@ -21,6 +21,7 @@ export default resource({
     { field: 'authorId', type: 'string' },
   ],
   sortable: ['createdAt', 'title', 'published'],
+  pagination: true,
   handlers: {
     async index(_request, _reply, { app, db }) {
       const session = await app.getSession(_request.headers);
@@ -32,11 +33,34 @@ export default resource({
         authorId: post.authorId,
         createdAt: post.createdAt,
       };
-      const query = db.select(projection).from(post).orderBy(desc(post.createdAt));
 
-      if (session?.user?.role === 'admin') return query;
-      if (session?.user) return query.where(or(eq(post.published, true), eq(post.authorId, session.user.id)));
-      return query.where(eq(post.published, true));
+      const conditions: any[] = [];
+      if (session?.user?.role !== 'admin') {
+        if (session?.user) {
+          conditions.push(or(eq(post.published, true), eq(post.authorId, session.user.id)));
+        } else {
+          conditions.push(eq(post.published, true));
+        }
+      }
+      const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const raw = (_request.query ?? {}) as any;
+      const page = Math.max(1, parseInt(raw.page ?? '1', 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(raw.limit ?? '20', 10) || 20));
+
+      let countQb = db.select({ count: sql<number>`count(*)` }).from(post) as any;
+      if (where) countQb = countQb.where(where);
+      const [{ count }] = await countQb;
+
+      let dataQb = db.select(projection).from(post).orderBy(desc(post.createdAt)) as any;
+      if (where) dataQb = dataQb.where(where);
+      dataQb.limit(limit).offset((page - 1) * limit);
+      const data = await dataQb;
+
+      return {
+        data,
+        meta: { page, limit, total: count, totalPages: Math.ceil(count / limit) },
+      };
     },
 
     async show(request, reply, { app, db }) {
