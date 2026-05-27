@@ -1,0 +1,18 @@
+services:
+  api:
+    build: .
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=http://localhost:${PORT:-3000}
+      - DATABASE_URL=file:./data/data.db
+      - PORT=3000
+      - HOST=0.0.0.0
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60000}
+    volumes:
+      - data:/app/apps/api/data
+
+volumes:
+  data:

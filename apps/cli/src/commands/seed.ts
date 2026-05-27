@@ -1,8 +1,6 @@
 import { ulid } from 'ulid';
-import { getDb } from '@/db';
-import * as authSchema from './schema/auth';
-import { comment } from './schema/comments';
-import { post } from './schema/posts';
+import { getDb } from '../../../api/src/db';
+import * as schema from '../../../api/src/db/schema';
 
 async function seed() {
   const db = getDb();
@@ -10,12 +8,12 @@ async function seed() {
   console.log('Seeding database...');
 
   // Clear existing data in FK-safe order
-  await db.delete(comment);
-  await db.delete(post);
-  await db.delete(authSchema.session);
-  await db.delete(authSchema.account);
-  await db.delete(authSchema.verification);
-  await db.delete(authSchema.user);
+  await db.delete(schema.comment);
+  await db.delete(schema.post);
+  await db.delete(schema.session);
+  await db.delete(schema.account);
+  await db.delete(schema.verification);
+  await db.delete(schema.user);
 
   // ── Users ──
   const adminId = ulid();
@@ -24,7 +22,7 @@ async function seed() {
   const adminPassword = await Bun.password.hash('admin123');
   const userPassword = await Bun.password.hash('user123');
 
-  await db.insert(authSchema.user).values([
+  await db.insert(schema.user).values([
     {
       id: adminId,
       email: 'admin@example.com',
@@ -41,7 +39,7 @@ async function seed() {
     },
   ]);
 
-  await db.insert(authSchema.account).values([
+  await db.insert(schema.account).values([
     {
       userId: adminId,
       accountId: 'admin@example.com',
@@ -61,7 +59,7 @@ async function seed() {
   const adminToken = ulid();
   const userToken = ulid();
 
-  await db.insert(authSchema.session).values([
+  await db.insert(schema.session).values([
     {
       userId: adminId,
       token: adminToken,
@@ -79,7 +77,7 @@ async function seed() {
   const post2Id = ulid();
   const post3Id = ulid();
 
-  await db.insert(post).values([
+  await db.insert(schema.post).values([
     {
       id: post1Id,
       title: 'Getting Started with Fastify',
@@ -110,7 +108,7 @@ async function seed() {
   ]);
 
   // ── Comments ──
-  await db.insert(comment).values([
+  await db.insert(schema.comment).values([
     {
       postId: post1Id,
       authorId: userId,

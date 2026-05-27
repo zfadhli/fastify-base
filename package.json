@@ -9,8 +9,9 @@
     "db:generate": "bun run --cwd apps/api db:generate",
     "db:migrate": "bun run --cwd apps/api db:migrate",
     "db:studio": "bun run --cwd apps/api db:studio",
-    "db:seed": "bun run --cwd apps/api seed",
+    "db:seed": "cd apps/api && bun ../cli/src/commands/seed.ts",
     "lint": "biome check --write",
+    "gen": "bun run --cwd apps/cli gen",
     "lint:ci": "biome ci"
   },
   "devDependencies": {

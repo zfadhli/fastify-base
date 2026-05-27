@@ -1,5 +1,5 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import type {
   FastifyBaseLogger,
   FastifyInstance,
@@ -73,6 +73,11 @@ interface SlugConfig {
   fallback?: string;
 }
 
+export type IncludeConfig = {
+  table: any;
+  schema: any;
+} & ({ type: 'single'; localKey: string; foreignKey: string } | { type: 'many'; localKey: string; foreignKey: string });
+
 interface ControllerConfig {
   model: any;
   resource: string;
@@ -87,6 +92,7 @@ interface ControllerConfig {
   pagination?: boolean;
   joins?: JoinConfig[];
   slug?: SlugConfig;
+  includeMap?: Record<string, IncludeConfig>;
   handlers?: Partial<Record<'index' | 'show' | 'store' | 'update' | 'destroy', ResourceHandler>>;
 }
 
@@ -117,6 +123,37 @@ function deriveProjection(model: any, schema: any): Record<string, any> | null {
     if (model[key]) projection[key] = model[key];
   }
   return Object.keys(projection).length > 0 ? projection : null;
+}
+
+function getConstraintColumn(err: any): string | null {
+  const msg: string = err?.message ?? '';
+  const match = msg.match(/UNIQUE constraint failed:\s*(\S+)/i);
+  return match ? match[1]!.split('.').pop()! : null;
+}
+
+async function attachIncludes(items: any[], config: ControllerConfig, db: any): Promise<void> {
+  if (!config.includeMap) return;
+  for (const [alias, inc] of Object.entries(config.includeMap)) {
+    const localValues = [...new Set(items.map((d: any) => d[inc.localKey]).filter(Boolean))] as string[];
+    if (localValues.length === 0) continue;
+    const rows = await db.select().from(inc.table).where(inArray(inc.table[inc.foreignKey], localValues));
+    if (inc.type === 'single') {
+      const map = new Map(rows.map((r: any) => [String(r[inc.foreignKey]), r]));
+      for (const item of items) {
+        item[alias] = map.get(String(item[inc.localKey])) ?? null;
+      }
+    } else {
+      const map = new Map<string, any[]>();
+      for (const r of rows) {
+        const key = String(r[inc.foreignKey]);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(r);
+      }
+      for (const item of items) {
+        item[alias] = map.get(String(item[inc.localKey])) ?? [];
+      }
+    }
+  }
 }
 
 function defaultIndex(ctx: ControllerContext): ResourceHandler {
@@ -184,13 +221,23 @@ function defaultIndex(ctx: ControllerContext): ResourceHandler {
       qb.limit(limit).offset((page - 1) * limit);
       const data = await qb;
 
+      if (config.includeMap) {
+        const includes = String((request.query as any)?.include ?? '');
+        if (includes) await attachIncludes(data, config, db);
+      }
+
       return {
         data,
         meta: { page, limit, total: count, totalPages: Math.ceil(count / limit) },
       };
     }
 
-    return qb;
+    const data = await qb;
+    if (config.includeMap) {
+      const includes = String((request.query as any)?.include ?? '');
+      if (includes) await attachIncludes(data, config, db);
+    }
+    return data;
   };
 }
 
@@ -209,6 +256,11 @@ function defaultShow(ctx: ControllerContext): ResourceHandler {
       if (!isOwner && !isAdmin) {
         return reply.notFound(`${config.resource} not found`);
       }
+    }
+
+    if (config.includeMap) {
+      const includes = String((request.query as any)?.include ?? '');
+      if (includes) await attachIncludes([found], config, db);
     }
 
     return found;
@@ -248,7 +300,14 @@ function defaultStore(ctx: ControllerContext): ResourceHandler {
           fn(String(source)).slice(0, 100) || (config.slug.fallback ?? 'untitled');
       }
     }
-    const [created] = (await db.insert(config.model).values(values).returning()) as any[];
+    let created: any;
+    try {
+      [created] = (await db.insert(config.model).values(values).returning()) as any[];
+    } catch (err: any) {
+      const col = getConstraintColumn(err);
+      if (col) return reply.conflict(`${config.resource} with this ${col} already exists`);
+      throw err;
+    }
     reply.status(201);
     return created;
   };
@@ -285,11 +344,14 @@ function defaultUpdate(ctx: ControllerContext): ResourceHandler {
         fn(String(source)).slice(0, 100) || (config.slug.fallback ?? 'untitled');
     }
 
-    const [updated] = (await db
-      .update(config.model)
-      .set(updateData)
-      .where(eq(config.model.id, id))
-      .returning()) as any[];
+    let updated: any;
+    try {
+      [updated] = (await db.update(config.model).set(updateData).where(eq(config.model.id, id)).returning()) as any[];
+    } catch (err: any) {
+      const col = getConstraintColumn(err);
+      if (col) return reply.conflict(`${config.resource} with this ${col} already exists`);
+      throw err;
+    }
     return updated;
   };
 }
@@ -352,6 +414,10 @@ export function resource(config: ControllerConfig) {
     if (config.pagination) {
       qsProps.page = Type.Optional(Type.String({ description: 'Page number (default: 1)' }));
       qsProps.limit = Type.Optional(Type.String({ description: 'Items per page (default: 20, max: 100)' }));
+    }
+    if (config.includeMap) {
+      const keys = Object.keys(config.includeMap).join(', ');
+      qsProps.include = Type.Optional(Type.String({ description: `Include related resources: ${keys}` }));
     }
 
     const indexResponse = config.pagination

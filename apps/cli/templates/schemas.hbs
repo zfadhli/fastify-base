@@ -1,0 +1,31 @@
+import Type from 'typebox';
+
+{{#if hasParent}}
+export const {{listParamsName}} = Type.Object({ {{parentFkCol}}: Type.String() });
+{{/if}}
+export const {{paramsName}} = Type.Object({ {{#if hasParent}}{{parentFkCol}}: Type.String(), {{/if}}id: Type.String() });
+
+export const Create{{Name}}Body = Type.Object({
+{{#each bodyCols}}
+{{{this}}}
+{{/each}}
+});
+
+export const Update{{Name}}Body = Type.Partial(Create{{Name}}Body);
+
+export const {{Name}}Response = Type.Object({
+  id: Type.String(),
+{{#each responseCols}}
+{{{this}}}
+{{/each}}
+  createdAt: Type.String(),
+  updatedAt: Type.String(),
+});
+
+export const {{Name}}ListItem = Type.Object({
+  id: Type.String(),
+{{#each listCols}}
+{{{this}}}
+{{/each}}
+  createdAt: Type.String(),
+});

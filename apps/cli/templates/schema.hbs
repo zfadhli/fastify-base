@@ -1,0 +1,40 @@
+import { {{drizzleImports}} } from 'drizzle-orm/sqlite-core';
+import { ulid } from 'ulid';
+{{#if hasParentImport}}
+import { {{parentImportName}} } from './{{parentImportName}}';
+{{/if}}
+{{#if hasUserImport}}
+import { user } from './auth';
+{{/if}}
+
+export const {{tableVar}} = sqliteTable('{{tableName}}', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => ulid()),
+{{#if hasParentFk}}
+  {{parentFkCol}}: text('{{parentFkCol}}')
+    .notNull()
+    .references(() => {{parentFkVar}}.id),
+{{/if}}
+{{#each columns}}
+{{{this}}}
+{{/each}}
+{{#if hasVisibility}}
+  published: integer('published', { mode: 'boolean' }).notNull().default(false),
+{{/if}}
+{{#if hasSlug}}
+  slug: text('slug').notNull().unique(),
+{{/if}}
+{{#if hasOwnership}}
+  authorId: text('authorId')
+    .notNull()
+    .references(() => user.id),
+{{/if}}
+  createdAt: text('createdAt')
+    .notNull()
+    .$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updatedAt')
+    .notNull()
+    .$defaultFn(() => new Date().toISOString())
+    .$onUpdateFn(() => new Date().toISOString()),
+});

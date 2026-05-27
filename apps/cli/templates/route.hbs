@@ -1,0 +1,43 @@
+import { {{schemaImportsJoined}} } from '@/db/schema';
+import { resource } from '@/lib/controller';
+import { {{schemaNamesJoined}} } from './schemas';
+
+export default resource({
+  model: {{name}},
+  resource: '{{Name}}',
+{{#if hasIdParam}}
+  idParam: '{{idParam}}',
+{{/if}}
+  schema: {
+    params: {{paramsName}},
+{{#if hasListParams}}
+    listParams: {{listParamsName}},
+{{/if}}
+    body: {{createBodyName}},
+    updateBody: {{updateBodyName}},
+    response: {{responseName}},
+    listItem: {{listItemName}},
+  },
+  auth: ['store', 'update', 'destroy'],
+{{#if hasOwnership}}
+  ownership: { field: 'authorId' },
+{{/if}}
+{{#if hasVisibility}}
+  visibility: { publishedField: 'published', ownerField: 'authorId' },
+{{/if}}
+{{#if hasParent}}
+  parentScope: { paramField: '{{parentFkCol}}', column: '{{parentFkCol}}', parentModel: {{parentVar}}, parentResource: '{{parentName}}' },
+{{/if}}
+{{#if hasFilters}}
+  filters: [
+{{#each filterDefs}}
+{{{this}}}
+{{/each}}
+  ],
+{{/if}}
+  sortable: [{{{sortDefs}}}],
+  pagination: true,
+{{#if hasSlug}}
+  slug: { sourceField: '{{slugSource}}' },
+{{/if}}
+});

@@ -7,6 +7,8 @@ const envSchema = Type.Object({
   BETTER_AUTH_URL: Type.String({ default: 'http://localhost:3000' }),
   PORT: Type.Number({ default: 3000 }),
   HOST: Type.String({ default: '0.0.0.0' }),
+  RATE_LIMIT_MAX: Type.Number({ default: 100 }),
+  RATE_LIMIT_WINDOW: Type.Number({ default: 60000 }),
 });
 
 export type Env = Static<typeof envSchema>;
@@ -22,6 +24,8 @@ export function loadEnv(): Env {
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
     PORT: process.env.PORT ? Number(process.env.PORT) : 3000,
     HOST: process.env.HOST ?? '0.0.0.0',
+    RATE_LIMIT_MAX: process.env.RATE_LIMIT_MAX ? Number(process.env.RATE_LIMIT_MAX) : 100,
+    RATE_LIMIT_WINDOW: process.env.RATE_LIMIT_WINDOW ? Number(process.env.RATE_LIMIT_WINDOW) : 60000,
   };
 
   if (!Value.Check(envSchema, parsed)) {
