@@ -1,10 +1,10 @@
 import { and, desc, eq } from 'drizzle-orm';
 import Type from 'typebox';
 import { post, user } from '@/db/schema';
-import { Controller, E } from '@/lib/controller';
+import { E, route } from '@/lib/controller';
 import { UserParams, UserPostsItem, UserResponse } from './schemas';
 
-export default Controller.route(({ app, db }) => {
+export default route(({ app, db }) => {
   app.get('/:id', {
     schema: {
       tags: ['Users'],

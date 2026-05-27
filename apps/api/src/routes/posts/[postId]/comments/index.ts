@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import { comment, post } from '@/db/schema';
-import { Controller, getUser } from '@/lib/controller';
+import { getUser, resource } from '@/lib/controller';
 import {
   CommentListItem,
   CommentParams,
@@ -10,7 +10,7 @@ import {
   UpdateCommentBody,
 } from './schemas';
 
-export default Controller.resource({
+export default resource({
   model: comment,
   resource: 'Comment',
   idParam: 'commentId',

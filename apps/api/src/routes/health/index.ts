@@ -1,7 +1,7 @@
 import Type from 'typebox';
-import { Controller } from '@/lib/controller';
+import { route } from '@/lib/controller';
 
-export default Controller.route(({ app }) => {
+export default route(({ app }) => {
   app.get('/', {
     schema: {
       tags: ['Health'],

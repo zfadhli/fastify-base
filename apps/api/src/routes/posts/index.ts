@@ -1,10 +1,10 @@
 import { desc, eq, or } from 'drizzle-orm';
 import { post } from '@/db/schema';
-import { Controller, getUser } from '@/lib/controller';
+import { getUser, resource } from '@/lib/controller';
 import { slugify } from './helpers';
 import { CreatePostBody, PostListItem, PostParams, PostResponse, UpdatePostBody } from './schemas';
 
-export default Controller.resource({
+export default resource({
   model: post,
   resource: 'Post',
   schema: {
