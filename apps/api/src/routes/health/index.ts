@@ -1,5 +1,5 @@
+import { route } from '@fastify-base/controller';
 import Type from 'typebox';
-import { route } from '@/lib/controller';
 
 export default route(({ app }) => {
   app.get('/', {

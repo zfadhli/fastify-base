@@ -4,15 +4,17 @@ import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { configure, setupErrorHandler } from '@fastify-base/controller';
 import Fastify from 'fastify';
+import { getDb } from '@/db';
 import { loadEnv } from '@/lib/env';
-import { setupErrorHandler } from '@/lib/errors';
 import { loadRoutes } from '@/lib/route-loader';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function buildApp() {
   loadEnv();
+  configure({ getDb });
 
   const app = Fastify({
     logger:

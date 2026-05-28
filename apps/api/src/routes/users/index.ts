@@ -1,7 +1,18 @@
+import type { IncludeConfig } from '@fastify-base/controller';
+import { attachIncludes, E, route } from '@fastify-base/controller';
 import { eq } from 'drizzle-orm';
-import { user } from '@/db/schema';
-import { E, route } from '@/lib/controller';
-import { UserParams, UserResponse } from './schemas';
+import { post, user } from '@/db/schema';
+import { PostIncludeSchema, UserParams, UserResponse } from './schemas';
+
+const includeMap: Record<string, IncludeConfig> = {
+  posts: {
+    type: 'many',
+    table: post,
+    schema: PostIncludeSchema,
+    localKey: 'id',
+    foreignKey: 'authorId',
+  },
+};
 
 export default route(({ app, db }) => {
   app.get('/:id', {
@@ -24,7 +35,10 @@ export default route(({ app, db }) => {
         .where(eq(user.id, id))
         .limit(1);
 
-      if (!found) return reply.notFound('User not found');
+      if (!found) return reply.status(404).send({ error: 'NOT_FOUND', message: 'User not found', statusCode: 404 });
+
+      const includes = String((request.query as any)?.include ?? '');
+      if (includes) await attachIncludes([found], includeMap, db);
 
       return found;
     },

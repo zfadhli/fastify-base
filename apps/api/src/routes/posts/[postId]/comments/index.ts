@@ -1,5 +1,5 @@
+import { resource } from '@fastify-base/controller';
 import { comment, post } from '@/db/schema';
-import { resource } from '@/lib/controller';
 import {
   CommentListItem,
   CommentParams,

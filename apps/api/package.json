@@ -23,6 +23,7 @@
     "@fastify/type-provider-typebox": "^6.1.0",
     "@libsql/client": "^0.15.0",
     "@scalar/fastify-api-reference": "^1.57.5",
+    "@fastify-base/controller": "workspace:*",
     "better-auth": "^1.6.11",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",

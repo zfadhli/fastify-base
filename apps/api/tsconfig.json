@@ -2,10 +2,11 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@fastify-base/controller": ["../../packages/controller/src"]
     },
-    "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "../..",
+    "outDir": "dist"
   },
   "include": ["src"]
 }

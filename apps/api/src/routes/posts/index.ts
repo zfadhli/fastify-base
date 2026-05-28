@@ -1,6 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { comment, post, user } from '@/db/schema';
-import { resource } from '@/lib/controller';
+import { resource } from '@fastify-base/controller';
+import { commentRelations, post, postRelations, userRelations } from '@/db/schema';
 import { CommentListItem } from '@/routes/posts/[postId]/comments/schemas';
 import { UserResponse } from '@/routes/users/schemas';
 import { slugify } from './helpers';
@@ -26,10 +25,14 @@ export default resource({
   ],
   sortable: ['createdAt', 'title', 'published'],
   pagination: true,
-  joins: [{ alias: 'author', table: user, on: eq(post.authorId, user.id) }],
-  slug: { sourceField: 'title', transform: slugify },
-  includeMap: {
-    author: { type: 'single', table: user, schema: UserResponse, localKey: 'authorId', foreignKey: 'id' },
-    comments: { type: 'many', table: comment, schema: CommentListItem, localKey: 'id', foreignKey: 'postId' },
+  relations: [postRelations, commentRelations, userRelations],
+  includeSchemas: { author: UserResponse, comments: CommentListItem },
+  lifecycle: {
+    beforeCreate: (values) => {
+      if (values.title) values.slug = slugify(values.title);
+    },
+    beforeUpdate: (updateData) => {
+      if (updateData.title) updateData.slug = slugify(updateData.title);
+    },
   },
 });

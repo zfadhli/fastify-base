@@ -2,7 +2,7 @@
   "name": "fastify-base",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "bun run --cwd apps/api dev",
     "typecheck": "bun run --cwd apps/api typecheck",
